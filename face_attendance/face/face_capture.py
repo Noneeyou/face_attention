@@ -4,15 +4,15 @@ import cv2
 class FaceCapture:
     def __init__(self, camera_index=0):
         self.camera_index = camera_index
+        self.detector = cv2.CascadeClassifier(
+            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+        )
 
     def capture_face(self, window_title="Capture Face"):
         cap = cv2.VideoCapture(self.camera_index)
         if not cap.isOpened():
             raise RuntimeError("Cannot open camera")
 
-        detector = cv2.CascadeClassifier(
-            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-        )
         captured_face = None
 
         while True:
@@ -21,7 +21,7 @@ class FaceCapture:
                 break
 
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            faces = detector.detectMultiScale(gray, 1.3, 5)
+            faces = self.detector.detectMultiScale(gray, 1.3, 5)
             for (x, y, w, h) in faces:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
@@ -41,3 +41,20 @@ class FaceCapture:
             raise RuntimeError("Face capture cancelled or no face detected.")
 
         return captured_face
+
+    def capture_from_file(self, file_path):
+        image = cv2.imread(file_path)
+        if image is None:
+            raise RuntimeError("Failed to read image file.")
+        face = self._extract_largest_face(image)
+        if face is None:
+            raise RuntimeError("No face detected in the image.")
+        return face
+
+    def _extract_largest_face(self, image):
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        faces = self.detector.detectMultiScale(gray, 1.3, 5)
+        if len(faces) == 0:
+            return None
+        x, y, w, h = max(faces, key=lambda item: item[2] * item[3])
+        return image[y:y + h, x:x + w]

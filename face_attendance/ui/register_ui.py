@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import filedialog, messagebox
 from face.face_capture import FaceCapture
 from face.face_recognizer import FaceRecognizer
 
@@ -35,6 +35,13 @@ class RegisterUI:
 
         tk.Button(
             self.win,
+            text="Select Face Image",
+            width=20,
+            command=self.select_face_image
+        ).pack(pady=(6, 0))
+
+        tk.Button(
+            self.win,
             text="Save",
             width=15,
             command=self.save_person
@@ -49,6 +56,21 @@ class RegisterUI:
             messagebox.showinfo("Success", "Face captured successfully.")
         except Exception as exc:
             messagebox.showerror("Capture Error", str(exc))
+
+    def select_face_image(self):
+        file_path = filedialog.askopenfilename(
+            filetypes=[("Image Files", "*.jpg *.jpeg *.png *.bmp")]
+        )
+        if not file_path:
+            return
+        try:
+            capturer = FaceCapture()
+            recognizer = FaceRecognizer()
+            face_img = capturer.capture_from_file(file_path)
+            self.face_encoding = recognizer.extract_encoding(face_img)
+            messagebox.showinfo("Success", "Face image loaded successfully.")
+        except Exception as exc:
+            messagebox.showerror("Image Error", str(exc))
 
     def save_person(self):
         name = self.entry_name.get().strip()

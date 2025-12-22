@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import filedialog, messagebox
 
 from attendance.attendance_manager import AttendanceManager
 from face.face_capture import FaceCapture
@@ -35,6 +35,13 @@ class AttendanceUI:
             command=self.capture_and_checkin
         ).pack(pady=16)
 
+        tk.Button(
+            self.win,
+            text="Select Image & Check-in",
+            width=20,
+            command=self.select_image_and_checkin
+        ).pack(pady=4)
+
         self.result_label = tk.Label(self.win, text="", fg="green")
         self.result_label.pack(pady=10)
 
@@ -42,18 +49,34 @@ class AttendanceUI:
         try:
             capturer = FaceCapture()
             face_img = capturer.capture_face("Check-in Capture")
-            encoding = self.recognizer.extract_encoding(face_img)
-            candidates = self.db.get_all_face_encodings()
-            person_id, score = self.recognizer.compare(encoding, candidates)
-            if person_id is None or score is None or score < 0.85:
-                self.result_label.config(text="No match found.", fg="red")
-                return
-            time_str = self.manager.check_in(person_id)
-            person = self.db.get_person(person_id)
-            name = person[1] if person else f"ID {person_id}"
-            self.result_label.config(
-                text=f"Check-in success: {name} @ {time_str}",
-                fg="green"
-            )
+            self._check_in_with_face(face_img)
         except Exception as exc:
             messagebox.showerror("Check-in Error", str(exc))
+
+    def select_image_and_checkin(self):
+        file_path = filedialog.askopenfilename(
+            filetypes=[("Image Files", "*.jpg *.jpeg *.png *.bmp")]
+        )
+        if not file_path:
+            return
+        try:
+            capturer = FaceCapture()
+            face_img = capturer.capture_from_file(file_path)
+            self._check_in_with_face(face_img)
+        except Exception as exc:
+            messagebox.showerror("Check-in Error", str(exc))
+
+    def _check_in_with_face(self, face_img):
+        encoding = self.recognizer.extract_encoding(face_img)
+        candidates = self.db.get_all_face_encodings()
+        person_id, score = self.recognizer.compare(encoding, candidates)
+        if person_id is None or score is None or score < 0.85:
+            self.result_label.config(text="No match found.", fg="red")
+            return
+        time_str = self.manager.check_in(person_id)
+        person = self.db.get_person(person_id)
+        name = person[1] if person else f"ID {person_id}"
+        self.result_label.config(
+            text=f"Check-in success: {name} @ {time_str}",
+            fg="green"
+        )
