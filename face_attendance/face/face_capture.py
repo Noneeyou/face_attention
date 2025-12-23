@@ -17,10 +17,23 @@ class FaceCapture:
         fallback = os.path.join(module_dir, "data", "haarcascade_frontalface_default.xml")
         return fallback
 
+    def _open_camera(self):
+        indices = [self.camera_index]
+        if self.camera_index == 0:
+            indices.extend([1, 2])
+        for index in indices:
+            cap = cv2.VideoCapture(index)
+            if cap.isOpened():
+                return cap
+            cap.release()
+        return None
+
     def capture_face(self, window_title="Capture Face"):
-        cap = cv2.VideoCapture(self.camera_index)
-        if not cap.isOpened():
-            raise RuntimeError("Cannot open camera")
+        cap = self._open_camera()
+        if cap is None:
+            raise RuntimeError(
+                "Cannot open camera. Please check permissions or use image selection."
+            )
 
         captured_face = None
 
