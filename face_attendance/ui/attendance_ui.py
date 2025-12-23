@@ -48,11 +48,6 @@ class AttendanceUI:
     def capture_and_checkin(self):
         try:
             capturer = FaceCapture()
-            if capturer.detector is None:
-                messagebox.showwarning(
-                    "Warning",
-                    "Face detector model not found. Using full image for encoding."
-                )
             face_img = capturer.capture_face("Check-in Capture")
             self._check_in_with_face(face_img)
         except Exception as exc:
@@ -66,11 +61,6 @@ class AttendanceUI:
             return
         try:
             capturer = FaceCapture()
-            if capturer.detector is None:
-                messagebox.showwarning(
-                    "Warning",
-                    "Face detector model not found. Using full image for encoding."
-                )
             face_img = capturer.capture_from_file(file_path)
             self._check_in_with_face(face_img)
         except Exception as exc:

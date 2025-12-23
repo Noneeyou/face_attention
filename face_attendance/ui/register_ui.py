@@ -51,11 +51,6 @@ class RegisterUI:
         try:
             capturer = FaceCapture()
             recognizer = FaceRecognizer()
-            if capturer.detector is None:
-                messagebox.showwarning(
-                    "Warning",
-                    "Face detector model not found. Using full image for encoding."
-                )
             face_img = capturer.capture_face()
             self.face_encoding = recognizer.extract_encoding(face_img)
             messagebox.showinfo("Success", "Face captured successfully.")
@@ -71,11 +66,6 @@ class RegisterUI:
         try:
             capturer = FaceCapture()
             recognizer = FaceRecognizer()
-            if capturer.detector is None:
-                messagebox.showwarning(
-                    "Warning",
-                    "Face detector model not found. Using full image for encoding."
-                )
             face_img = capturer.capture_from_file(file_path)
             self.face_encoding = recognizer.extract_encoding(face_img)
             messagebox.showinfo("Success", "Face image loaded successfully.")
