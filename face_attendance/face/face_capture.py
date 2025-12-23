@@ -1,12 +1,21 @@
+import os
 import cv2
 
 
 class FaceCapture:
     def __init__(self, camera_index=0):
         self.camera_index = camera_index
-        self.detector = cv2.CascadeClassifier(
-            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-        )
+        cascade_path = self._resolve_cascade_path()
+        self.detector = cv2.CascadeClassifier(cascade_path)
+        if self.detector.empty():
+            raise RuntimeError(f"Failed to load cascade file: {cascade_path}")
+
+    def _resolve_cascade_path(self):
+        if hasattr(cv2, "data") and hasattr(cv2.data, "haarcascades"):
+            return os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_default.xml")
+        module_dir = os.path.dirname(cv2.__file__)
+        fallback = os.path.join(module_dir, "data", "haarcascade_frontalface_default.xml")
+        return fallback
 
     def capture_face(self, window_title="Capture Face"):
         cap = cv2.VideoCapture(self.camera_index)
