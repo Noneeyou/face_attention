@@ -8,7 +8,7 @@ class FaceCapture:
         cascade_path = self._resolve_cascade_path()
         self.detector = cv2.CascadeClassifier(cascade_path)
         if self.detector.empty():
-            raise RuntimeError(f"Failed to load cascade file: {cascade_path}")
+            self.detector = None
 
     def _resolve_cascade_path(self):
         if hasattr(cv2, "data") and hasattr(cv2.data, "haarcascades"):
@@ -29,16 +29,18 @@ class FaceCapture:
             if not ret:
                 break
 
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            faces = self.detector.detectMultiScale(gray, 1.3, 5)
+            faces = self._detect_faces(frame)
             for (x, y, w, h) in faces:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
             cv2.imshow(window_title, frame)
             key = cv2.waitKey(1) & 0xFF
-            if key == ord("c") and len(faces) > 0:
-                x, y, w, h = faces[0]
-                captured_face = frame[y:y + h, x:x + w]
+            if key == ord("c"):
+                if faces:
+                    x, y, w, h = faces[0]
+                    captured_face = frame[y:y + h, x:x + w]
+                else:
+                    captured_face = frame
                 break
             if key == ord("q"):
                 break
@@ -47,7 +49,7 @@ class FaceCapture:
         cv2.destroyAllWindows()
 
         if captured_face is None:
-            raise RuntimeError("Face capture cancelled or no face detected.")
+            raise RuntimeError("Face capture cancelled.")
 
         return captured_face
 
@@ -56,14 +58,17 @@ class FaceCapture:
         if image is None:
             raise RuntimeError("Failed to read image file.")
         face = self._extract_largest_face(image)
-        if face is None:
-            raise RuntimeError("No face detected in the image.")
-        return face
+        return face if face is not None else image
 
     def _extract_largest_face(self, image):
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        faces = self.detector.detectMultiScale(gray, 1.3, 5)
-        if len(faces) == 0:
+        faces = self._detect_faces(image)
+        if not faces:
             return None
         x, y, w, h = max(faces, key=lambda item: item[2] * item[3])
         return image[y:y + h, x:x + w]
+
+    def _detect_faces(self, image):
+        if self.detector is None:
+            return []
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        return self.detector.detectMultiScale(gray, 1.3, 5)
