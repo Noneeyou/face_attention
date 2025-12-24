@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import filedialog, messagebox
+import cv2
+from face.face_capture import FaceCapture
+from face.face_recognizer import FaceRecognizer
 
 class RegisterUI:
     def __init__(self, master, db):
         self.db = db
+        self.face_encoding = None
+        self.last_face_image = None
 
         self.win = tk.Toplevel(master)
         self.win.title("Register Person")
-        self.win.geometry("320x240")
+        self.win.geometry("320x300")
         self.win.resizable(False, False)
 
         tk.Label(self.win, text="Name").pack(pady=(15, 0))
@@ -25,10 +30,74 @@ class RegisterUI:
 
         tk.Button(
             self.win,
+            text="Capture Face (Press C)",
+            width=20,
+            command=self.capture_face
+        ).pack(pady=(15, 0))
+
+        tk.Button(
+            self.win,
+            text="Select Face Image",
+            width=20,
+            command=self.select_face_image
+        ).pack(pady=(6, 0))
+
+        tk.Button(
+            self.win,
+            text="Save Last Capture",
+            width=20,
+            command=self.save_last_capture
+        ).pack(pady=(6, 0))
+
+        tk.Button(
+            self.win,
             text="Save",
             width=15,
             command=self.save_person
         ).pack(pady=20)
+
+    def capture_face(self):
+        try:
+            capturer = FaceCapture()
+            recognizer = FaceRecognizer()
+            face_img = capturer.capture_face()
+            self.face_encoding = recognizer.extract_encoding(face_img)
+            self.last_face_image = face_img
+            messagebox.showinfo("Success", "Face captured successfully.")
+        except Exception as exc:
+            messagebox.showerror("Capture Error", str(exc))
+
+    def select_face_image(self):
+        file_path = filedialog.askopenfilename(
+            filetypes=[("Image Files", "*.jpg *.jpeg *.png *.bmp")]
+        )
+        if not file_path:
+            return
+        try:
+            capturer = FaceCapture()
+            recognizer = FaceRecognizer()
+            face_img = capturer.capture_from_file(file_path)
+            self.face_encoding = recognizer.extract_encoding(face_img)
+            self.last_face_image = face_img
+            messagebox.showinfo("Success", "Face image loaded successfully.")
+        except Exception as exc:
+            messagebox.showerror("Image Error", str(exc))
+
+    def save_last_capture(self):
+        if self.last_face_image is None:
+            messagebox.showwarning("No Image", "No captured image to save.")
+            return
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".png",
+            filetypes=[("PNG Image", "*.png"), ("JPEG Image", "*.jpg;*.jpeg")]
+        )
+        if not file_path:
+            return
+        try:
+            cv2.imwrite(file_path, self.last_face_image)
+            messagebox.showinfo("Saved", f"Image saved to:\n{file_path}")
+        except Exception as exc:
+            messagebox.showerror("Save Error", str(exc))
 
     def save_person(self):
         name = self.entry_name.get().strip()
@@ -38,8 +107,12 @@ class RegisterUI:
         if not name:
             messagebox.showerror("Error", "Name is required")
             return
+        if self.face_encoding is None:
+            messagebox.showerror("Error", "Please capture face data first.")
+            return
 
         person_id = self.db.add_person(name, job_id, dept)
+        self.db.add_face_encoding(person_id, self.face_encoding)
         messagebox.showinfo("Success", f"Register success (ID = {person_id})")
         self.win.destroy()
     
