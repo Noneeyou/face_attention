@@ -80,3 +80,4 @@ class AttendanceUI:
             text=f"Check-in success: {name} @ {time_str}",
             fg="green"
         )
+        messagebox.showinfo("Check-in Success", f"{name} 签到成功！时间：{time_str}")
