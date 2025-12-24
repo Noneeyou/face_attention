@@ -48,14 +48,14 @@ class FaceCapture:
             if not ret:
                 break
 
-            faces = self._detect_faces(frame)
+            faces = list(self._detect_faces(frame))
             for (x, y, w, h) in faces:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
             cv2.imshow(window_title, frame)
             key = cv2.waitKey(1) & 0xFF
             if key == ord("c"):
-                if faces:
+                if len(faces) > 0:
                     x, y, w, h = faces[0]
                     captured_face = frame[y:y + h, x:x + w]
                 else:
@@ -80,8 +80,8 @@ class FaceCapture:
         return face if face is not None else image
 
     def _extract_largest_face(self, image):
-        faces = self._detect_faces(image)
-        if not faces:
+        faces = list(self._detect_faces(image))
+        if len(faces) == 0:
             return None
         x, y, w, h = max(faces, key=lambda item: item[2] * item[3])
         return image[y:y + h, x:x + w]
