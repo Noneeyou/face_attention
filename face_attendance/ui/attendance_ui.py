@@ -11,7 +11,7 @@ class AttendanceUI:
         self.db = db
         self.manager = AttendanceManager(db)
         self.recognizer = FaceRecognizer()
-        self.match_threshold = 0.6
+        self.match_threshold = 0.5
 
         self.win = tk.Toplevel(master)
         self.win.title("Face Check-in")
