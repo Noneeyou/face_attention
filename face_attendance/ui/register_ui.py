@@ -52,6 +52,13 @@ class RegisterUI:
         tk.Button(
             self.win,
             text="Save",
+            width=20,
+            command=self.save_person
+        ).pack(pady=12)
+
+        tk.Button(
+            self.win,
+            text="Save",
             width=15,
             command=self.save_person
         ).pack(pady=20)
