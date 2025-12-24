@@ -3,8 +3,9 @@ import cv2
 
 
 class FaceCapture:
-    def __init__(self, camera_index=0):
+    def __init__(self, camera_index=0, prefer_directshow=True):
         self.camera_index = camera_index
+        self.prefer_directshow = prefer_directshow
         cascade_path = self._resolve_cascade_path()
         self.detector = cv2.CascadeClassifier(cascade_path)
         if self.detector.empty():
@@ -21,11 +22,16 @@ class FaceCapture:
         indices = [self.camera_index]
         if self.camera_index == 0:
             indices.extend([1, 2])
+
+        backends = [cv2.CAP_DSHOW] if self.prefer_directshow else []
+        backends.append(cv2.CAP_ANY)
+
         for index in indices:
-            cap = cv2.VideoCapture(index)
-            if cap.isOpened():
-                return cap
-            cap.release()
+            for backend in backends:
+                cap = cv2.VideoCapture(index, backend)
+                if cap.isOpened():
+                    return cap
+                cap.release()
         return None
 
     def capture_face(self, window_title="Capture Face"):
