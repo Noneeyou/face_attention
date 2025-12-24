@@ -12,7 +12,12 @@ class FaceRecognizer:
         resized = cv2.resize(equalized, self.target_size)
         normalized = resized.astype("float32")
         normalized = (normalized - normalized.mean()) / (normalized.std() + 1e-6)
-        return normalized.flatten()
+
+        # 32-bin histogram (robust to lighting/scale) normalized to unit sum
+        hist = cv2.calcHist([equalized], [0], None, [32], [0, 256]).flatten()
+        hist = hist / (hist.sum() + 1e-6)
+
+        return np.concatenate([normalized.flatten(), hist.astype("float32")])
 
     def compare(self, encoding, candidates):
         if encoding is None or not candidates:

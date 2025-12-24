@@ -11,7 +11,7 @@ class AttendanceUI:
         self.db = db
         self.manager = AttendanceManager(db)
         self.recognizer = FaceRecognizer()
-        self.match_threshold = 0.5
+        self.match_threshold = 0.4
 
         self.win = tk.Toplevel(master)
         self.win.title("Face Check-in")
@@ -70,6 +70,9 @@ class AttendanceUI:
     def _check_in_with_face(self, face_img):
         encoding = self.recognizer.extract_encoding(face_img)
         candidates = self.db.get_all_face_encodings()
+        if not candidates:
+            self.result_label.config(text="No registered faces. Please register first.", fg="red")
+            return
         person_id, score = self.recognizer.compare(encoding, candidates)
         if person_id is None or score is None or score < self.match_threshold:
             score_txt = f"{score:.2f}" if score is not None else "N/A"
