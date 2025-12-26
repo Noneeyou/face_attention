@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
+import cv2
+from PIL import Image, ImageTk
 
 from attendance.attendance_manager import AttendanceManager
 from face.face_capture import FaceCapture
@@ -46,10 +48,14 @@ class AttendanceUI:
         self.result_label = tk.Label(self.win, text="", fg="green")
         self.result_label.pack(pady=10)
 
+        self.preview_label = tk.Label(self.win, text="No preview")
+        self.preview_label.pack(pady=4)
+
     def capture_and_checkin(self):
         try:
             capturer = FaceCapture()
             face_img = capturer.capture_face("Check-in Capture")
+            self._update_preview(face_img)
             self._check_in_with_face(face_img)
         except Exception as exc:
             messagebox.showerror("Check-in Error", str(exc))
@@ -63,6 +69,7 @@ class AttendanceUI:
         try:
             capturer = FaceCapture()
             face_img = capturer.capture_from_file(file_path)
+            self._update_preview(face_img)
             self._check_in_with_face(face_img)
         except Exception as exc:
             messagebox.showerror("Check-in Error", str(exc))
@@ -86,3 +93,15 @@ class AttendanceUI:
             fg="green"
         )
         messagebox.showinfo("Check-in Success", f"{name} 签到成功！时间：{time_str}")
+
+    def _update_preview(self, bgr_image):
+        try:
+            rgb = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(rgb)
+            img.thumbnail((200, 200))
+            tk_img = ImageTk.PhotoImage(img)
+            self.preview_label.config(image=tk_img, text="")
+            self.preview_label.image = tk_img  # keep reference
+        except Exception:
+            self.preview_label.config(text="Preview unavailable", image="")
+            self.preview_label.image = None
