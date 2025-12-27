@@ -10,7 +10,7 @@ class MainUI:
 
         self.root = tk.Tk()
         self.root.title("Face Attendance System")
-        self.root.geometry("360x240")
+        self.root.geometry("360x340")
         self.root.resizable(False, False)
 
         tk.Label(

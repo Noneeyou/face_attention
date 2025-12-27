@@ -17,7 +17,7 @@ class AttendanceUI:
 
         self.win = tk.Toplevel(master)
         self.win.title("Face Check-in")
-        self.win.geometry("340x240")
+        self.win.geometry("340x540")
         self.win.resizable(False, False)
 
         tk.Label(
