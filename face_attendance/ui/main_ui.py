@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import tkinter as tk
-from tkinter import messagebox
 from ui.register_ui import RegisterUI
+from ui.attendance_ui import AttendanceUI
+from ui.report_ui import ReportUI
 
 class MainUI:
     def __init__(self, db):
@@ -9,7 +10,7 @@ class MainUI:
 
         self.root = tk.Tk()
         self.root.title("Face Attendance System")
-        self.root.geometry("360x240")
+        self.root.geometry("360x340")
         self.root.resizable(False, False)
 
         tk.Label(
@@ -29,20 +30,20 @@ class MainUI:
             self.root,
             text="Face Check-in",
             width=20,
-            command=lambda: None
+            command=self.open_attendance
         ).pack(pady=6)
 
         tk.Button(
             self.root,
             text="Attendance Report",
             width=20,
-            command=lambda: None
+            command=self.open_report
         ).pack(pady=6)
 
 
         tk.Label(
             self.root,
-            text="Step 1: Main UI & Database Init (Done)",
+            text="Step 1: Main UI & Database Init (Done)\nStep 2: Register, Check-in, Report",
             fg="gray"
         ).pack(pady=12)
 
@@ -50,7 +51,12 @@ class MainUI:
 
     def open_register(self):
         RegisterUI(self.root, self.db)
-        
+
+    def open_attendance(self):
+        AttendanceUI(self.root, self.db)
+
+    def open_report(self):
+        ReportUI(self.root, self.db)
 
     def on_close(self):
         self.db.close()
